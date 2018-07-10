@@ -6,19 +6,19 @@ from jaeger_client import Config
 from opentracing_instrumentation.request_context import RequestContextManager
 
 
-def initialize_tracer(name):
+def initialize_tracer(name, host):
     cfg = Config(
         config={
             'sampler': {'type': 'const', 'param': 1},
-            'local_agent': {'reporting_host': 'jaeger'}
+            'local_agent': {'reporting_host': host}
         },
         service_name=name
     )
     return cfg.initialize_tracer()
 
 
-def initialize(app, name):
-    tracer = initialize_tracer(name)
+def initialize(app, name, host):
+    tracer = initialize_tracer(name, host)
     ftracer = FlaskTracer(tracer, False, app)
     return tracer, ftracer
 
@@ -34,9 +34,9 @@ def trace(tracer, ftracer):
 
 
 class GrTracer(object):
-    def __init__(self, app, name, patches):
+    def __init__(self, app, name, patches, host):
         self.app = app
-        self.tracer, self.ftracer = initialize(app, name)
+        self.tracer, self.ftracer = initialize(app, name, host)
         install_patches(list(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches)))
 
     def trace(self, func):
