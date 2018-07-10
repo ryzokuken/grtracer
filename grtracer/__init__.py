@@ -37,7 +37,7 @@ class GrTracer(object):
     def __init__(self, app, name, patches):
         self.app = app
         self.tracer, self.ftracer = initialize(app, name)
-        install_patches(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches))
+        install_patches(list(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches)))
 
     def trace(self, func):
         return trace(self.tracer, self.ftracer)(func)
