@@ -17,9 +17,7 @@ def initialize_tracer(name):
     return cfg.initialize_tracer()
 
 
-def initialize(app, name, patches):
-    install_patches(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches))
-
+def initialize(app, name):
     tracer = initialize_tracer(name)
     ftracer = FlaskTracer(tracer, False, app)
     return tracer, ftracer
@@ -36,9 +34,10 @@ def trace(tracer, ftracer):
 
 
 class GrTracer(object):
-    def __init__(self, app, name):
+    def __init__(self, app, name, patches):
         self.app = app
         self.tracer, self.ftracer = initialize(app, name)
+        install_patches(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches))
 
     def trace(self, func):
         return trace(self.tracer, self.ftracer)(func)
