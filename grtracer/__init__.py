@@ -1,6 +1,6 @@
 from flask import request
 
-from opentracing_instrumentation.client_hooks.requests import install_patches
+from opentracing_instrumentation.client_hooks import install_patches
 from flask_opentracing import FlaskTracer
 from jaeger_client import Config
 from opentracing_instrumentation.request_context import RequestContextManager
@@ -17,8 +17,8 @@ def initialize_tracer(name):
     return cfg.initialize_tracer()
 
 
-def initialize(app, name):
-    install_patches()
+def initialize(app, name, patches):
+    install_patches(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches))
 
     tracer = initialize_tracer(name)
     ftracer = FlaskTracer(tracer, False, app)
