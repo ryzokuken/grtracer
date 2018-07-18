@@ -1,47 +1,43 @@
 from flask import request
 
-from opentracing_instrumentation.client_hooks import install_patches
-from flask_opentracing import FlaskTracer
 from jaeger_client import Config
+from flask_opentracing import FlaskTracer
+from opentracing_instrumentation.client_hooks import install_all_patches
 from opentracing_instrumentation.request_context import RequestContextManager
 
 
-def initialize_tracer(name, host):
-    cfg = Config(
-        config={
-            'sampler': {'type': 'const', 'param': 1},
-            'local_agent': {'reporting_host': host}
-        },
-        service_name=name
-    )
-    return cfg.initialize_tracer()
-
-
-def initialize(app, name, host):
-    tracer = initialize_tracer(name, host)
-    ftracer = FlaskTracer(tracer, False, app)
-    return tracer, ftracer
-
-
-def trace(tracer, ftracer):
-    def decorator(f):
-        def wrapper(*args, **kwargs):
-            pspan = ftracer.get_span(request)
-            with RequestContextManager(span=pspan):
-                return f(*args, **kwargs)
-        return ftracer.trace()(wrapper)
-    return decorator
-
-
-class GrTracer(object):
-    def __init__(self, app, name, patches, host):
+class TracerMiddleware(object):
+    def __init__(self, app):
+        self.cfg = Config(
+            config={
+                'sampler': {'type': 'const', 'param': 1},
+                'local_agent': {'reporting_host': 'jaeger'}
+            },
+            service_name='jaeger-cart'
+        )
         self.app = app
-        self.tracer, self.ftracer = initialize(app, name, host)
-        install_patches(list(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches)))
+        self.initialized = False
 
-    def trace(self, func):
-        return trace(self.tracer, self.ftracer)(func)
+        app.before_request(self._start_trace)
+        app.after_request(self._end_trace)
 
-    def bootstrap(self):
-        for k, f in self.app.view_functions.items():
-            self.app.view_functions[k] = self.trace(f)
+        install_all_patches()
+
+    def _start_trace(self):
+        if not self.initialized:
+            self.tracer = self.cfg.initialize_tracer()
+            self.ftracer = FlaskTracer(self.tracer, False, self.app)
+            self.initialized = True
+        span = self.ftracer.get_span(request)
+        if span is None:
+            span = self.tracer.start_span(request.endpoint)
+        mgr = RequestContextManager(span=span)
+        mgr.__enter__()
+
+        request.span = span
+        request.mgr = mgr
+
+    def _end_trace(self, response):
+        request.span.finish()
+        request.mgr.__exit__()
+        return response
