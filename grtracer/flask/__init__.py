@@ -2,12 +2,12 @@ from flask import request
 
 from jaeger_client import Config
 from flask_opentracing import FlaskTracer
-from opentracing_instrumentation.client_hooks import install_all_patches
+from opentracing_instrumentation.client_hooks import install_patches
 from opentracing_instrumentation.request_context import RequestContextManager
 
 
 class GrTFlaskMiddleware(object):
-    def __init__(self, app, name, host='localhost', rate=1, header='GROFERS_TRACE_ID'):
+    def __init__(self, app, name, host='localhost', rate=1, header='GROFERS_TRACE_ID', patches=[]):
         self.cfg = Config(
             config={
                 'sampler': {'type': 'const', 'param': rate},
@@ -22,7 +22,7 @@ class GrTFlaskMiddleware(object):
         app.before_request(self._start_trace)
         app.after_request(self._end_trace)
 
-        install_all_patches()
+        install_patches(list(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches)))
 
     def _start_trace(self):
         if not self.initialized:
