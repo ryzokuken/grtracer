@@ -7,7 +7,7 @@ from opentracing_instrumentation.request_context import RequestContextManager
 
 
 class TracerMiddleware(object):
-    def __init__(self, app, name, host):
+    def __init__(self, app, name, host='localhost'):
         self.cfg = Config(
             config={
                 'sampler': {'type': 'const', 'param': 1},
