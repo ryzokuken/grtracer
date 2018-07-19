@@ -7,11 +7,12 @@ from opentracing_instrumentation.request_context import RequestContextManager
 
 
 class GrTFlaskMiddleware(object):
-    def __init__(self, app, name, host='localhost'):
+    def __init__(self, app, name, host='localhost', rate=1, header='GROFERS_TRACE_ID'):
         self.cfg = Config(
             config={
-                'sampler': {'type': 'const', 'param': 1},
-                'local_agent': {'reporting_host': host}
+                'sampler': {'type': 'const', 'param': rate},
+                'local_agent': {'reporting_host': host},
+                'trace_id_header': header
             },
             service_name=name
         )
