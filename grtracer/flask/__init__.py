@@ -6,7 +6,7 @@ from opentracing_instrumentation.client_hooks import install_all_patches
 from opentracing_instrumentation.request_context import RequestContextManager
 
 
-class TracerMiddleware(object):
+class GrTFlaskMiddleware(object):
     def __init__(self, app, name, host='localhost'):
         self.cfg = Config(
             config={
