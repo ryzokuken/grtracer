@@ -7,13 +7,13 @@ from opentracing_instrumentation.request_context import RequestContextManager
 
 
 class TracerMiddleware(object):
-    def __init__(self, app):
+    def __init__(self, app, name, host):
         self.cfg = Config(
             config={
                 'sampler': {'type': 'const', 'param': 1},
-                'local_agent': {'reporting_host': 'jaeger'}
+                'local_agent': {'reporting_host': host}
             },
-            service_name='jaeger-cart'
+            service_name=name
         )
         self.app = app
         self.initialized = False
