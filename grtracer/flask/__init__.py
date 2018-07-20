@@ -22,7 +22,24 @@ class GrTFlaskMiddleware(object):
         app.before_request(self._start_trace)
         app.after_request(self._end_trace)
 
-        install_patches(list(map(lambda x: 'opentracing_instrumentation.client_hooks.%s.install_patches' % x, patches)))
+        permitted_patches = [
+           'mysqldb',
+           'psycopg2',
+           'strict_redis',
+           'sqlalchemy',
+           'tornado_http',
+           'urllib',
+           'urllib2',
+           'requests',
+        ]
+        final_patches = []
+        for patch in patches:
+            if not patch in permitted_patches:
+                raise ValueError('{} is not a valid patch'.format(patch))
+            else:
+                final_patches.append(
+                    'opentracing_instrumentation.client_hooks.{}.install_patches'.format(patch))
+        install_patches(final_patches)
 
     def _start_trace(self):
         if not self.initialized:
