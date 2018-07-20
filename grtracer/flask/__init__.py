@@ -7,7 +7,7 @@ from opentracing_instrumentation.request_context import RequestContextManager
 
 
 class GrTFlaskMiddleware(object):
-    def __init__(self, app, name, host='localhost', rate=1, header='GROFERS_TRACE_ID', patches=[]):
+    def __init__(self, app, name, host='localhost', rate=0, header='GROFERS_TRACE_ID', patches=[]):
         self.cfg = Config(
             config={
                 'sampler': {'type': 'const', 'param': rate},
