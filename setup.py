@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='grtracer',
-    version='1.2.1',
+    version='1.2.2',
     description='Simple tracing setup using Jaeger and Flask',
     url='https://github.com/ryzokuken/grtracer',
     author='Ujjwal Sharma',
