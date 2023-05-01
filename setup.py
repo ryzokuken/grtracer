@@ -10,7 +10,7 @@ setup(
     license='MIT',
     packages=['grtracer', 'grtracer.flask'],
     install_requires=[
-        'flask==1.0',
+        'flask==2.3.2',
         'flask_opentracing==0.2.0',
         'jaeger_client==3.10.0',
         'opentracing_instrumentation==2.4.1'
